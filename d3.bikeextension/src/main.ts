@@ -52,7 +52,7 @@ function showD3Sheet(domScriptName: DOMScriptName): boolean {
         window.presentSheet(domScriptName).then((handle) => {
             let editor = window.currentOutlineEditor;
             if (editor) {
-                let d3Hierarchy = buildD3Hiearchy(editor.focus)
+                let d3Hierarchy = buildD3Hierarchy(editor.focus)
                 let d3HierarchyJSON = JSON.stringify(d3Hierarchy)
                 handle.postMessage(d3HierarchyJSON);
             }
@@ -64,7 +64,7 @@ function showD3Sheet(domScriptName: DOMScriptName): boolean {
     return true
 }
 
-function buildD3Hiearchy(row: Row): any {
+function buildD3Hierarchy(row: Row): any {
     let hierarchy = {
         id: row.id,
         name: trimString(row.text.string, 32),
@@ -74,7 +74,7 @@ function buildD3Hiearchy(row: Row): any {
     for (let child of row.children) {
         // Skip empty leaves
         if (child.firstChild || child.text.string.length > 0) {
-            hierarchy.children.push(buildD3Hiearchy(child));
+            hierarchy.children.push(buildD3Hierarchy(child));
         }
     }
     
