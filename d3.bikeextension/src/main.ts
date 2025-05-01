@@ -52,9 +52,10 @@ function showD3Sheet(domScriptName: DOMScriptName): boolean {
         window.presentSheet(domScriptName).then((handle) => {
             let editor = window.currentOutlineEditor;
             if (editor) {
-                let d3Hierarchy = buildD3Hierarchy(editor.focus)
-                let d3HierarchyJSON = JSON.stringify(d3Hierarchy)
-                handle.postMessage(d3HierarchyJSON);
+                handle.postMessage({
+                    "type": "load",
+                    "data": buildD3Hierarchy(editor.focus)
+                });
             }
             handle.onmessage = (message) => {
                 console.log(message);
@@ -65,20 +66,17 @@ function showD3Sheet(domScriptName: DOMScriptName): boolean {
 }
 
 function buildD3Hierarchy(row: Row): any {
-    let hierarchy = {
+    return {
         id: row.id,
         name: trimString(row.text.string, 32),
-        children: new Array(),
+        children: row.children.flatMap(child => {
+            if (child.firstChild || child.text.string.length > 0) {
+                return [buildD3Hierarchy(child)]
+            } else {
+                return []
+            }
+        })
     };
-    
-    for (let child of row.children) {
-        // Skip empty leaves
-        if (child.firstChild || child.text.string.length > 0) {
-            hierarchy.children.push(buildD3Hierarchy(child));
-        }
-    }
-    
-    return hierarchy;
 }
 
 function trimString(string: string, maxLength: number): string {

@@ -8,9 +8,9 @@ interface NodeData {
 
 export function activate(context: DOMExtensionContext) {
   context.onmessage = (message) => {
-    context.element.appendChild(generateTreeSVG(
-      JSON.parse(message)
-    ));
+    if (message.type == "load" && message.data) {
+      context.element.appendChild(generateTreeSVG(message.data));
+    }
   }
 }
 
