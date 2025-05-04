@@ -7,7 +7,7 @@ interface NodeData {
 }
 
 export function activate(context: DOMExtensionContext) {
-  context.onmessage = (message) => {
+  context.onmessage = (message: { type: string, data: NodeData }) => {
     if (message.type == "load" && message.data) {
       context.element.appendChild(generateTreeSVG(message.data));
     }
