@@ -3,7 +3,6 @@ import { getOrCreateCalendarRow } from "./calendar";
 
 export async function activate(context: AppExtensionContext) {
     bike.commands.addCommands({
-        source: "calendar",
         commands: {
             "calendar:today": todayCommand
         }

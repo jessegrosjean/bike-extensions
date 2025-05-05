@@ -5,7 +5,6 @@ import { Row } from "outline";
 
 export async function activate(context: AppExtensionContext) {
     bike.commands.addCommands({
-        source: "d3",
         commands: {
             "d3:show-tree-view": showTreeView,
             "d3:show-radial-view": showRadialView,
