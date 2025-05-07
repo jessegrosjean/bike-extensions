@@ -1,46 +1,100 @@
 import { Outline, Row } from "outline";
 
-export function getOrCreateCalendarRow(outline: Outline, date: Date): Row {
-    let dateComponents = getDateComponents(date);
-    let dateRow = outline.getRowById(dateComponents.dayId);
+export function getOrCreateCalendarRow(outline: Outline): Row {
+    return getOrInsertDateIdRow("caledar", "Calendar", outline.root, outline);
+}
 
-    if (dateRow) {
-        return dateRow;
-    }
+export function getOrCreateCalendarYearRow(outline: Outline, date: Date, addMonths: boolean, addDays: boolean): Row {
+    let dateComponents = getComponents(date);
+    let yearRow = outline.getRowById(dateComponents.yearId);
+    if (yearRow && !addMonths && !addDays) { return yearRow; }
 
     return outline.transaction({ animate: "default" }, () => {
-        let calendarRow = getOrCreateRow("caledar", "Calendar", outline.root, outline);
-        let yearRow = getOrCreateRow(dateComponents.yearId, dateComponents.yearName, calendarRow, outline);
-        let monthRow = getOrCreateRow(dateComponents.monthId, dateComponents.monthName, yearRow, outline);
-        let dayRow = getOrCreateRow(dateComponents.dayId, dateComponents.dayName, monthRow, outline);
+        let calendarRow = getOrCreateCalendarRow(outline);
+        let yearRow = getOrInsertDateIdRow(dateComponents.yearId, dateComponents.yearName, calendarRow, outline);
+        if (addMonths) {
+            let months = getMonthsInYear(date.getFullYear());
+            for (const month of months) {
+                getOrCreateCalendarMonthRow(outline, month, addDays);
+            }
+        }
+        return yearRow;
+    });
+}
+
+export function getOrCreateCalendarMonthRow(outline: Outline, date: Date, addDays: boolean): Row {
+    let dateComponents = getComponents(date);
+    let monthRow = outline.getRowById(dateComponents.monthId);
+
+    if (monthRow && !addDays) { return monthRow; }
+
+    return outline.transaction({ animate: "default" }, () => {
+        let yearRow = getOrCreateCalendarYearRow(outline, date, false, false);
+        let monthRow = getOrInsertDateIdRow(dateComponents.monthId, dateComponents.monthName, yearRow, outline);
+        if (addDays) {
+            let days = getDaysInMonth(date);
+            for (const day of days) {
+                getOrCreateCalendarDayRow(outline, day);
+            }
+        }
+        return monthRow;
+    });
+}
+
+export function getOrCreateCalendarDayRow(outline: Outline, date: Date): Row {
+    let dateComponents = getComponents(date);
+    let dateRow = outline.getRowById(dateComponents.dayId);
+
+    if (dateRow) { return dateRow; }
+
+    return outline.transaction({ animate: "default" }, () => {
+        let monthRow = getOrCreateCalendarMonthRow(outline, date, false);
+        let dayRow = getOrInsertDateIdRow(dateComponents.dayId, dateComponents.dayName, monthRow, outline);
         return dayRow;
     });    
 }
 
-function getOrCreateRow(id: string, text: string, parent: Row, outline: Outline): Row {
-    let row = outline.getRowById(id);
+function getOrInsertDateIdRow(dateId: string, text: string, parent: Row, outline: Outline): Row {
+    let row = outline.getRowById(dateId);
 
-    if (row) {
-        return row;
-    }
+    if (row) { return row; }
 
-    let insertBefore: Row | undefined;
     let dateIdPattern = /\d{4}\/\d{2}\/\d{2}/;
+    let insertBefore: Row | undefined;
 
     for (const child of parent.children) {
-        if (child.id.match(dateIdPattern) && id < child.id) {
+        if (child.id.match(dateIdPattern) && dateId < child.id) {
             insertBefore = child;
             break;
         }
     }
 
     return outline.insertRows([{
-        id: id,
+        id: dateId,
         text: text,
     }], parent, insertBefore)[0];
 }
 
-function getDateComponents(date: Date): {
+function getMonthsInYear(year: number): Date[] {
+    const months: Date[] = [];
+    for (let month = 0; month < 12; month++) {
+      months.push(new Date(year, month, 1));
+    }
+    return months;
+}
+
+function getDaysInMonth(date: Date): Date[] {
+    const year = date.getFullYear();
+    const month = date.getMonth();  
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const dates: Date[] = [];
+    for (let day = 1; day <= daysInMonth; day++) {
+      dates.push(new Date(year, month, day));
+    }
+    return dates;
+}
+
+function getComponents(date: Date): {
     yearName: string;
     yearId: string;
     monthName: string;
