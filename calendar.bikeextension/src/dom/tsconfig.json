@@ -1,7 +1,0 @@
-{
-  "extends": "../../../@Bike/@configs/tsconfig.dom.json",
-  "include": [
-    "../../../@Bike/@types/dom/**.*",
-    "**.*"
-  ],
-}

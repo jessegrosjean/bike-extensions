@@ -1,8 +1,0 @@
-{
-    "version" : "1.0",
-    "api_version" : "0.0.0",
-    "safari_inspectable" : true,
-    "permissions": [
-        "domScript"
-    ]
-}
